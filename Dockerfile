@@ -2,36 +2,27 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Copy source code
+# Copy source and tests
 COPY src ./src
-
-# Copy unit tests
 COPY unittests ./unittests
+COPY libs ./libs
 
-# Download JUnit standalone jar (change version if needed)
-RUN mkdir -p libs
-RUN curl -L -o libs/junit-platform-console-standalone.jar \
-    https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.0/junit-platform-console-standalone-1.10.0.jar
-
-# Compile Java source files
+# Compile main source
 RUN mkdir -p out
 RUN javac -d out $(find src -name "*.java")
 
 # Compile unit tests
-RUN mkdir -p out_test
-RUN javac -d out_test -cp out:libs/junit-platform-console-standalone.jar $(find unittests -name "*.java")
-
-# Run unit tests
-RUN java -jar libs/junit-platform-console-standalone.jar \
-    --class-path out:out_test \
-    --scan-class-path
+RUN mkdir -p test-classes
+RUN javac -cp libs/junit-platform-console-standalone.jar -d test-classes $(find unittests -name "*.java")
 
 # ===== Runtime Stage =====
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy compiled classes from build stage
-COPY --from=build /app/out .
+# Copy compiled classes
+COPY --from=build /app/out . 
+COPY --from=build /app/test-classes ./test-classes
+COPY --from=build /app/libs ./libs
 
-# Set the main class to run
+# Default: run main app
 CMD ["java", "edu.ncsu.csc326.coffeemaker.Main"]
