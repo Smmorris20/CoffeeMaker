@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB = credentials('DHub') // Exposes DOCKERHUB_USR / DOCKERHUB_PSW
+        DOCKERHUB = credentials('Dhub') // Exposes DOCKERHUB_USR / DOCKERHUB_PSW
     }
 
     stages {
