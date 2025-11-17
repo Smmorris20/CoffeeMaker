@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB = credentials('Dhub') // Exposes DOCKERHUB_USR / DOCKERHUB_PSW
+        DOCKERHUB = credentials('Dhub')
     }
 
     stages {
@@ -28,21 +28,22 @@ pipeline {
                 sh '''
                     docker run --rm smmorris20/coffeemaker \
                     java -jar libs/junit-platform-console-standalone.jar \
-                    --class-path out:out_test \
-                    --scan-class-path
+                    -cp "out:test-classes" \
+                    --scan-classpath
                 '''
             }
         }
 
         stage('Run Application') {
             steps {
-                sh 'docker compose up -d'
+                sh 'docker run -d --name coffeemaker smmorris20/coffeemaker'
             }
         }
 
         stage('Cleaning') {
             steps {
-                sh 'docker compose down || true'
+                sh 'docker stop coffeemaker || true'
+                sh 'docker rm coffeemaker || true'
             }
         }
     }
