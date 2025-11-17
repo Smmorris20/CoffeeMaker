@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+  coffeemaker:
+    build: .
+    container_name: coffeemaker
+    stdin_open: true
+    tty: true
