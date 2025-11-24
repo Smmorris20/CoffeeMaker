@@ -1,8 +1,8 @@
-version: "3.9"
-
 services:
   coffeemaker:
     build: .
+    image: ST20285209/coffeemaker:latest
+
     container_name: coffeemaker
     stdin_open: true
     tty: true
