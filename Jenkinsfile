@@ -18,12 +18,13 @@ pipeline {
                 sh '''
                     docker stop coffeemaker || true
                     docker rm coffeemaker || true
-                    docker rmi smmorris20/coffeemaker || true
-                    docker build -t smmorris20/coffeemaker .
+                    docker rmi st20285209/coffeemaker || true
+                    docker build -t st20285209/coffeemaker .
                 '''
             }
         }
-                stage('Push Docker Image') {
+
+        stage('Push Docker Image') {
             steps {
                 sh 'docker push st20285209/coffeemaker'
             }
@@ -32,7 +33,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 sh '''
-                    docker run --rm smmorris20/coffeemaker \
+                    docker run --rm st20285209/coffeemaker \
                     java -jar libs/junit-platform-console-standalone.jar \
                     -cp "out:test-classes" \
                     --scan-classpath
@@ -42,7 +43,7 @@ pipeline {
 
         stage('Run Application') {
             steps {
-                sh 'docker run -d --name coffeemaker smmorris20/coffeemaker'
+                sh 'docker run -d --name coffeemaker st20285209/coffeemaker'
             }
         }
 
