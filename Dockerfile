@@ -27,13 +27,5 @@ COPY --from=build /app/out ./out
 COPY --from=build /app/test-classes ./test-classes
 COPY --from=build /app/libs ./libs
 
-# Build argument to choose mode (default = web)
-ARG MODE=web
-ENV MODE=${MODE}
-
-# Default command (runs shell to evaluate mode)
-CMD ["sh", "-c", "if [ \"$MODE\" = \"test\" ]; then \
-        java -jar libs/junit-platform-console-standalone.jar -cp test-classes:out --scan-classpath; \
-    else \
-        java -cp out:libs/* edu.ncsu.csc326.coffeemaker.CoffeeMakerWeb; \
-    fi"]
+# Default command: run all tests
+CMD java -jar libs/junit-platform-console-standalone.jar -cp test-classes:out --scan-classpath
