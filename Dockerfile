@@ -29,3 +29,5 @@ COPY --from=build /app/libs ./libs
 
 # Default command: run all tests
 CMD java -jar libs/junit-platform-console-standalone.jar -cp test-classes:out --scan-classpath
+CMD java -cp out:libs/* edu.ncsu.csc326.coffeemaker.CoffeeMakerWeb
+
