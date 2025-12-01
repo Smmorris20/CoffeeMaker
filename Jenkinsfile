@@ -23,6 +23,11 @@ pipeline {
                 '''
             }
         }
+                stage('Push Docker Image') {
+            steps {
+                sh 'docker push st20285209/coffeemaker'
+            }
+        }
 
         stage('Run Unit Tests') {
             steps {
