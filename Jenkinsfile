@@ -12,16 +12,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker stop coffeemaker || true
-                    docker rm coffeemaker || true
-                    docker rmi smmorris20/coffeemaker || true
-                    docker build -t smmorris20/coffeemaker .
-                '''
-            }
-        }
+stage('Build Docker Image') {
+    steps {
+        sh '''
+            docker stop coffeemaker || true
+            docker rm coffeemaker || true
+            docker rmi st20285209/coffeemaker || true
+            docker build -t st20285209/coffeemaker .
+        '''
+    }
+}
+
+stage('Push Docker Image') {
+    steps {
+        sh 'docker push st20285209/coffeemaker'
+    }
+}
+
 
         stage('Run Unit Tests') {
             steps {
