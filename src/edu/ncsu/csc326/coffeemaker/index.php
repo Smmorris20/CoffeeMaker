@@ -1,7 +1,5 @@
 <?php
-// Simple CoffeeMaker API
-
-// Check for action in query string
+// Basic CoffeeMaker PHP App
 $action = $_GET['action'] ?? '';
 
 header('Content-Type: application/json');
