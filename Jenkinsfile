@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         DOCKERHUB = credentials('Dhub')
+
+        EC2_HOST = '3.10.59.2'
+        EC2_USER = 'ec2-user'
     }
 
     stages {
