@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB = credentials('Dhub')
+
+        EC2_HOST = '3.10.59.2'
+        EC2_USER = 'ec2-user'
+
+    }
+
+    stages {
+
+        stage('Docker Login') {
+            steps {
+                sh 'echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker stop coffeemaker || true
+                    docker rm coffeemaker || true
+                    docker rmi st20285209/coffeemaker || true
+                    docker build -t st20285209/coffeemaker .
+                '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push st20285209/coffeemaker'
+            }
+        }
+
+
+        stage('Deploy to EC2') {
+            steps {
+                // *** USE EXACTLY THE ID FROM THE SNIPPET GENERATOR HERE ***
+                sshagent (credentials: ['3.10.59.2']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+# -------- Amazon Linux setup --------
+sudo yum update -y
+
+if ! command -v docker &> /dev/null
+then
+    if command -v amazon-linux-extras &> /dev/null; then
+        sudo amazon-linux-extras install docker -y
+    else
+        sudo yum install -y docker
+    fi
+    sudo systemctl start docker
+    sudo systemctl enable docker
+fi
+
+sudo docker pull st20285209/coffeemaker
+sudo docker stop myapp-container || true
+sudo docker rm myapp-container || true
+sudo docker run -d --name myapp-container -p 5000:80 st20285209/coffeemaker
+EOF
+                    '''
+                }
+            }
+        }
+
+        stage('Clean') {
+            steps {
+                echo "Cleaning up..."
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline completed."
+        }
+    }
+}
