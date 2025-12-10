@@ -3,10 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB = credentials('Dhub')
-
-        EC2_HOST = '3.10.59.2'
-        EC2_USER = 'ec2-user'
-
+        EC2_SSH = credentials('ec2-user')   // your EC2 key stored in Jenkins
+        EC2_HOST = "3.10.59.2"              // your EC2 instance address
     }
 
     stages {
@@ -34,47 +32,42 @@ pipeline {
             }
         }
 
+        stage('Run Unit Tests') {
+            steps {
+                sh '''
+                    docker run --rm st20285209/coffeemaker \
+                    java -jar libs/junit-platform-console-standalone.jar \
+                    -cp "out:test-classes" \
+                    --scan-classpath
+                '''
+            }
+        }
 
         stage('Deploy to EC2') {
             steps {
-                // *** USE EXACTLY THE ID FROM THE SNIPPET GENERATOR HERE ***
                 sshagent (credentials: ['ec2-user']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
-# -------- Amazon Linux setup --------
-sudo yum update -y
-
-if ! command -v docker &> /dev/null
-then
-    if command -v amazon-linux-extras &> /dev/null; then
-        sudo amazon-linux-extras install docker -y
-    else
-        sudo yum install -y docker
-    fi
-    sudo systemctl start docker
-    sudo systemctl enable docker
-fi
-
-sudo docker pull st20285209/coffeemaker
-sudo docker stop coffeemaker || true
-sudo docker rm coffeemaker || true
-sudo docker run -d --name coffeemaker -p 5000:80 st20285209/coffeemaker
-EOF
-                    '''
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} ' \
+                        docker pull st20285209/coffeemaker:latest && \
+                        docker stop coffeemaker || true && \
+                        docker rm coffeemaker || true && \
+                        docker run -d --name coffeemaker st20285209/coffeemaker \
+                    '
+                    """
                 }
             }
         }
 
-        stage('Clean') {
+        stage('Clean Workspace') {
             steps {
-                echo "Cleaning up..."
+                echo "Cleaning up workspace..."
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline completed."
+        success {
+            echo "Pipeline completed successfully!"
         }
     }
 }
